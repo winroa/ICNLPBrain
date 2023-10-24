@@ -84,7 +84,33 @@ class ICNLPBrain:
     
     #Function for skip-gram model
     def skipgram_forward_prop(self, target, context_indices):
-        pass
+        try:            
+            #Look up the embeddings for the target word
+            target_embedding = self.embeddings[target]
+            
+            #Initialize context embeddings to zero
+            context_embedding = np.zeros_like(target_embedding)
+            
+            #Setup the embeddings of the context words
+            for index in context_indices:
+                context_embedding += self.context_embeddings[index]
+                
+            #Average the context embeddings
+            combined_embedding = target_embedding + context_embedding
+        
+            print(f"Shape of combined_embedding: {combined_embedding.shape}")
+            print(f"Shape of context_embeddings.T: {self.context_embeddings.T.shape}")
+            #Compute the dot product between combined and context embeddings
+            dot_product = np.dot(combined_embedding, self.context_embeddings.T)
+        
+            #Apply the softmax function
+            softmax_output = np.exp(dot_product) / np.sum(np.exp(dot_product))
+        
+            #Return the softmax output
+            return softmax_output
+        except Exception as e:
+            print(f"Forward propagateion failed: {e}")
+            return None
     
     #Function for backward propagation in skip-gram
     def skipgram_backward_prop(self, target, context, softmax_output):
@@ -122,15 +148,7 @@ class ICNLPBrain:
                 
     #Function for training the skip-gram
     def train_skipgram(self, tokenized_texts, epochs, learning_rate):
-        self.initialize_weights(embed_size=300)
-        
-        #Training loop for skip-gram model
-        print("Training Skip-gram model...")
-        
-        for epoch in range(epochs):
-            total_loss = 0
-            for tokenized_text in tokenized_texts:
-                
+        pass                
 
 def main():
     print("Welcome to ICNLPBrain")
