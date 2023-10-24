@@ -84,33 +84,7 @@ class ICNLPBrain:
     
     #Function for skip-gram model
     def skipgram_forward_prop(self, target, context_indices):
-        try:            
-            #Look up the embeddings for the target word
-            target_embedding = self.embeddings[target]
-            
-            #Initialize context embeddings to zero
-            context_embedding = np.zeros_like(target_embedding)
-            
-            #Setup the embeddings of the context words
-            for index in context_indices:
-                context_embedding += self.context_embeddings[index]
-                
-            #Average the context embeddings
-            combined_embedding = target_embedding + context_embedding
-        
-            print(f"Shape of combined_embedding: {combined_embedding.shape}")
-            print(f"Shape of context_embeddings.T: {self.context_embeddings.T.shape}")
-            #Compute the dot product between combined and context embeddings
-            dot_product = np.dot(combined_embedding, self.context_embeddings.T)
-        
-            #Apply the softmax function
-            softmax_output = np.exp(dot_product) / np.sum(np.exp(dot_product))
-        
-            #Return the softmax output
-            return softmax_output
-        except Exception as e:
-            print(f"Forward propagateion failed: {e}")
-            return None
+        pass
     
     #Function for backward propagation in skip-gram
     def skipgram_backward_prop(self, target, context, softmax_output):
@@ -154,21 +128,9 @@ class ICNLPBrain:
         print("Training Skip-gram model...")
         
         for epoch in range(epochs):
-            epoch_loss = 0
-            for i, (center_word, context_words) in enumerate(tokenized_texts):
-                #Forward pass
-                y_pred, hidden_layer = self.forward_pass(center_word)
+            total_loss = 0
+            for tokenized_text in tokenized_texts:
                 
-                #Calculate Error
-                EI = np.sum([np.subtract(y_pred, word) for word in context_words], axis=0)
-                
-                #Backpropagation
-                self.backprop(EI, hidden_layer, center_word, learning_rate)
-                
-                #Calculate Loss
-                epoch_loss += -np.sum([self.W2[:, word.T].dot(hidden_layer.T) for word in context_words]) + len(context_words) & np.log(np.sum(np.exp(self.W2.dot(hidden_layer.T))))
-                
-            print(f"Epoch {epoch + 1} complete. Loss: {epoch_loss}. I'm still learning, just so we're clear.")
 
 def main():
     print("Welcome to ICNLPBrain")
