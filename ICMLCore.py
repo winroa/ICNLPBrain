@@ -12,7 +12,7 @@ class ICMLCoreclass:
         self.biases = []
         
         #Input layer for first hidden layer
-        self.weights.append(np.random.randn(5000, hidden_sizes[0]))
+        self.weights.append(np.random.randn(input_size, hidden_sizes[0]))
         self.biases.append(np.zeros((1, hidden_sizes[0])))
         
         #Hidden layers
@@ -26,6 +26,8 @@ class ICMLCoreclass:
           
     def forward_propagation(self, input_data, nlp_output=None):
         print(f"Received input_data in forward_propagation: {input_data}")
+        
+        input_data = np.reshape(input_data, (1, -1))
 
         self.activations = []
         self.activations.append(input_data)
@@ -36,6 +38,8 @@ class ICMLCoreclass:
         pre_processed_input = np.dot(input_data, pre_process_weights) + pre_process_biases
         
         self.activations.append(pre_processed_input)
+        
+        self.weights[0] = np.random.randn(5000,5)
         
         for i in range(len(self.weights)):
             z = np.dot(self.activations[-1], self.weights[i]) + self.biases[i]
@@ -56,32 +60,37 @@ class ICMLCoreclass:
         loss = -1 * (y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
         return np.mean(loss)
    
-    def backpropagation(self):  
+    def backpropagation(self, y_train, y_pred):  
         #Initialize a list to store the gradients for each layer
         gradients = []
         
         #Calculate the output layer gradient
         output_gradient = self.activations[-1] * (1 - self.activations[-1])
+        print (f"Initial output_gradient shape: {output_gradient.shape}")
         
         #Loop backward through the layers to calculate gradients
         for i in range(len(self.weights) - 1, -1, -1):
-            layer_gradient = output.gradient.dot(self.weights[i].T)
+            print (f"Layer {i} output_gradient shape: {output_gradient.shape}")
+            layer_gradient = output_gradient.dot(self.weights[i].T)
+            print (f"Layer {i} layer_gradient shape: {layer_gradient.shape}")
             gradients.append(layer_gradient)
             
             #Update the output gradient for the next iteration
+            print(f"self.activations[{i}] shape: {self.activations[i].shape}")
             output_gradient = layer_gradient * (self.activations[i] * (1 - self.activations[i]))
+            print(f"New output_gradient shape: {output_gradient.shape}")
     
-            gradients.reverse()
+        gradients.reverse()
             
-            for i in range(len(self.weights)):
-                self.weights[i] += self.learning_rate * self.activations[i].T.dot(gradients[i])
-                self.biases[i] += self.learning_rate * np.sum(gradients[i], axis=0, keepdims=True)
+        for i in range(len(self.weights)):
+            self.weights[i] += self.learning_rate * self.activations[i].T.dot(gradients[i])
+            self.biases[i] += self.learning_rate * np.sum(gradients[i], axis=0, keepdims=True)
     
     def train(self, X_train, y_train, epochs):
         for epoch in range(epochs):
-            y_pred = self.forward_propagation(X_train)
+            y_pred = self.forward_propagation(input_data)
             loss = self.cost_function(y_train, y_pred)
-            self.backpropagation()
+            self.backpropagation(y_train, y_pred)
             print(f"Epoch {epoch+1}/{epochs} - Loss: {loss}")
     
     def predict(self):
@@ -112,11 +121,4 @@ if __name__ == "__main__":
     
     #Training
     epochs = 10
-    for epoch in range(epochs):
-        y_pred = model.forward_propagation(input_data)
-        loss = model.cost_function(y_true, y_pred)
-        
-        #Training function call
-        model.train(y_true, y_pred, epochs)
-        
-        print(f"Epoch {epoch+1}, Loss: {loss}")
+    model.train(input_data, y_true, epochs)
