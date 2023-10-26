@@ -25,8 +25,17 @@ class ICMLCoreclass:
         self.biases.append(np.zeros((1, output_size)))
           
     def forward_propagation(self, input_data, nlp_output=None):
+        print(f"Received input_data in forward_propagation: {input_data}")
+
         self.activations = []
         self.activations.append(input_data)
+        
+        #Pre-processing layer: Expanding from 10 to 5000 dimensions
+        pre_process_weights = np.random.randn(10, 5000)
+        pre_process_biases = np.zeros((1, 5000))
+        pre_processed_input = np.dot(input_data, pre_process_weights) + pre_process_biases
+        
+        self.activations.append(pre_processed_input)
         
         for i in range(len(self.weights)):
             z = np.dot(self.activations[-1], self.weights[i]) + self.biases[i]
@@ -48,14 +57,32 @@ class ICMLCoreclass:
         return np.mean(loss)
    
     def backpropagation(self):  
-        #Backpropagation code here
-
-        pass
+        #Initialize a list to store the gradients for each layer
+        gradients = []
+        
+        #Calculate the output layer gradient
+        output_gradient = self.activations[-1] * (1 - self.activations[-1])
+        
+        #Loop backward through the layers to calculate gradients
+        for i in range(len(self.weights) - 1, -1, -1):
+            layer_gradient = output.gradient.dot(self.weights[i].T)
+            gradients.append(layer_gradient)
+            
+            #Update the output gradient for the next iteration
+            output_gradient = layer_gradient * (self.activations[i] * (1 - self.activations[i]))
     
-    def train(self):
-        #Training loop code here
-
-        pass
+            gradients.reverse()
+            
+            for i in range(len(self.weights)):
+                self.weights[i] += self.learning_rate * self.activations[i].T.dot(gradients[i])
+                self.biases[i] += self.learning_rate * np.sum(gradients[i], axis=0, keepdims=True)
+    
+    def train(self, X_train, y_train, epochs):
+        for epoch in range(epochs):
+            y_pred = self.forward_propagation(X_train)
+            loss = self.cost_function(y_train, y_pred)
+            self.backpropagation()
+            print(f"Epoch {epoch+1}/{epochs} - Loss: {loss}")
     
     def predict(self):
         #Prediction code here
@@ -75,7 +102,21 @@ if __name__ == "__main__":
     output = model.forward_propagation(input_data)
     print("Output after propagation:", output)
     
+    #Generate ground truth data
     y_true = np.array([[1]])
+    
+    #Calculate Loss
     y_pred = model.forward_propagation(input_data)
     loss = model.cost_function(y_true, y_pred)
     print(f"Loss: {loss}")
+    
+    #Training
+    epochs = 10
+    for epoch in range(epochs):
+        y_pred = model.forward_propagation(input_data)
+        loss = model.cost_function(y_true, y_pred)
+        
+        #Training function call
+        model.train(y_true, y_pred, epochs)
+        
+        print(f"Epoch {epoch+1}, Loss: {loss}")
